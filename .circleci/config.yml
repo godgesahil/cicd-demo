@@ -1,0 +1,34 @@
+version: 2.1
+
+jobs:
+  deploy:
+    docker:
+      - image: cimg/base:stable
+
+    steps:
+      - checkout
+
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:fx2CsOe4DjfdHe4PmMJv1wqqz6m1QAs38q+TWEr5QNI"
+
+      - run:
+          name: Add EC2 to known hosts
+          command: |
+            ssh-keyscan -H 13.233.129.77 >> ~/.ssh/known_hosts
+
+      - run:
+          name: Deploy to EC2
+          command: |
+            ssh ubuntu@13.233.129.77 "
+              cd /var/www/html &&
+              git pull origin main &&
+              sudo systemctl restart nginx
+            "
+
+workflows:
+  version: 2
+  deploy_pipeline:
+    jobs:
+      - deploy
+
